@@ -13,45 +13,75 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import java.io.Serializable
 
+// Xiaomi color scheme
+object XiaomiColors {
+    val Primary = Color(0xFF007AFF)
+    val Background = Color(0xFFF5F5F5)
+    val Surface = Color.White
+    val OnSurface = Color(0xFF1C1C1E)
+    val OnSurfaceVariant = Color(0xFF8E8E93)
+    val Divider = Color(0xFFE5E5EA)
+    val Success = Color(0xFF34C759)
+    val Warning = Color(0xFFFF9500)
+    val Error = Color(0xFFFF3B30)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBar(
-    onSearchClick: () -> Unit
+fun XiaomiTopBar(
+    title: String = "Danh bạ",
+    onSearchClick: () -> Unit,
+    onAddClick: () -> Unit
 ) {
     TopAppBar(
-        title = { Text("Danh Bạ Điện Thoại") },
-        navigationIcon = {
-            IconButton(onClick = { /* Xử lý nút quay lại */ }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Quay lại"
-                )
-            }
+        title = {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium,
+                color = XiaomiColors.OnSurface
+            )
         },
         actions = {
             IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
-                    contentDescription = "Tìm kiếm"
+                    contentDescription = "Tìm kiếm",
+                    tint = XiaomiColors.OnSurface
+                )
+            }
+            IconButton(onClick = onAddClick) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Thêm liên hệ",
+                    tint = XiaomiColors.OnSurface
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = XiaomiColors.Surface
+        )
     )
 }
 
@@ -60,8 +90,148 @@ data class Contact(val id: Int, val name: String, val phoneNumber: String)
 val sampleContacts = mutableStateListOf(
     Contact(1, "Nguyen Van A", "0123456789"),
     Contact(2, "Le Thi B", "0987654321"),
-    Contact(3, "Tran Van C", "0121987654")
+    Contact(3, "Tran Van C", "0121987654"),
+    Contact(4, "Pham Thi D", "0456789123"),
+    Contact(5, "Hoang Van E", "0789123456")
 )
+
+@Composable
+fun ContactAvatar(name: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(XiaomiColors.Primary),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = name.take(1).uppercase(),
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+fun ContactItem(
+    contact: Contact,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ContactAvatar(name = contact.name)
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = contact.name,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = XiaomiColors.OnSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = contact.phoneNumber,
+                fontSize = 14.sp,
+                color = XiaomiColors.OnSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+fun ActionButton(
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit,
+    color: Color = XiaomiColors.Primary
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onClick() }
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(color.copy(alpha = 0.1f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = text,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = XiaomiColors.OnSurfaceVariant
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun XiaomiSearchBar(
+    searchQuery: TextFieldValue,
+    onSearchQueryChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = onSearchQueryChange,
+        placeholder = {
+            Text(
+                "Tìm kiếm liên hệ",
+                color = XiaomiColors.OnSurfaceVariant
+            )
+        },
+        leadingIcon = {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = "Search",
+                tint = XiaomiColors.OnSurfaceVariant
+            )
+        },
+        trailingIcon = {
+            if (searchQuery.text.isNotEmpty()) {
+                IconButton(onClick = { onSearchQueryChange(TextFieldValue("")) }) {
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = "Clear",
+                        tint = XiaomiColors.OnSurfaceVariant
+                    )
+                }
+            }
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(24.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = XiaomiColors.Primary,
+            unfocusedBorderColor = XiaomiColors.Divider,
+            focusedContainerColor = XiaomiColors.Surface,
+            unfocusedContainerColor = XiaomiColors.Surface
+        ),
+        singleLine = true
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,20 +239,25 @@ fun ContactListScreen(activity: ComponentActivity) {
     val context = LocalContext.current
 
     // State variables
-    var name by remember { mutableStateOf(TextFieldValue()) }
-    var phoneNumber by remember { mutableStateOf(TextFieldValue()) }
-    var nameError by remember { mutableStateOf<String?>(null) }
-    var phoneError by remember { mutableStateOf<String?>(null) }
-    var editNameError by remember { mutableStateOf<String?>(null) }
-    var editPhoneError by remember { mutableStateOf<String?>(null) }
-    var selectedContact by remember { mutableStateOf<Contact?>(null) }
-    var editingContact by remember { mutableStateOf<Contact?>(null) }
-    var newName by remember { mutableStateOf(TextFieldValue()) }
-    var newPhoneNumber by remember { mutableStateOf(TextFieldValue()) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    var selectedContact by remember { mutableStateOf<Contact?>(null) }
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
     var pendingPhoneNumber by remember { mutableStateOf<String?>(null) }
 
-    // Launcher để xin quyền gọi điện
+    // Add contact form states
+    var addName by remember { mutableStateOf(TextFieldValue()) }
+    var addPhoneNumber by remember { mutableStateOf(TextFieldValue()) }
+    var addNameError by remember { mutableStateOf<String?>(null) }
+    var addPhoneError by remember { mutableStateOf<String?>(null) }
+
+    // Edit contact form states
+    var editName by remember { mutableStateOf(TextFieldValue()) }
+    var editPhoneNumber by remember { mutableStateOf(TextFieldValue()) }
+    var editNameError by remember { mutableStateOf<String?>(null) }
+    var editPhoneError by remember { mutableStateOf<String?>(null) }
+
+    // Permission launcher
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -95,16 +270,15 @@ fun ContactListScreen(activity: ComponentActivity) {
         }
     }
 
-    // Filtered contacts based on search query
+    // Filtered contacts
     val displayedContacts by remember(searchQuery.text, sampleContacts.toList()) {
         derivedStateOf {
             searchContacts(searchQuery.text, sampleContacts.toList())
         }
     }
 
-    // Function to handle call permission and make call
+    // Call handling functions
     fun handleCall(phoneNumber: String) {
-        // Kiểm tra xem thiết bị có hỗ trợ telephony không
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_TELEPHONY)) {
             Toast.makeText(context, "Thiết bị này không hỗ trợ gọi điện", Toast.LENGTH_LONG).show()
             return
@@ -124,7 +298,6 @@ fun ContactListScreen(activity: ComponentActivity) {
         }
     }
 
-    // Function to open dialer
     fun openDialer(phoneNumber: String) {
         try {
             val intent = Intent(Intent.ACTION_DIAL)
@@ -135,243 +308,372 @@ fun ContactListScreen(activity: ComponentActivity) {
         }
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(XiaomiColors.Background)
     ) {
-        TopBar(onSearchClick = {
-            // Logic focus vào TextField tìm kiếm nếu cần
-        })
+        Column(modifier = Modifier.fillMaxSize()) {
+            XiaomiTopBar(
+                onSearchClick = { /* Focus search */ },
+                onAddClick = { showAddDialog = true }
+            )
 
-        // Search TextField
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = { searchQuery = it },
-            label = { Text("Tìm kiếm liên hệ") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp),
-            leadingIcon = {
-                Icon(Icons.Default.Search, contentDescription = "Search Icon")
-            }
-        )
+            XiaomiSearchBar(
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it }
+            )
 
-        // Contact List
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            items(displayedContacts.size) { index ->
-                val contact = displayedContacts[index]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                        .clickable { selectedContact = contact },
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Text(text = contact.name, fontSize = 18.sp)
-                    Text(text = contact.phoneNumber, fontSize = 16.sp)
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Add Contact Form
-        TextField(
-            value = name,
-            onValueChange = {
-                name = it
-                nameError = null
-            },
-            label = { Text("Tên liên hệ") },
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            isError = nameError != null,
-            supportingText = {
-                if (nameError != null) {
-                    Text(
-                        text = nameError!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
+            // Contact List
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(XiaomiColors.Surface)
+            ) {
+                items(displayedContacts.size) { index ->
+                    ContactItem(
+                        contact = displayedContacts[index],
+                        onClick = { selectedContact = displayedContacts[index] }
                     )
+
+                    if (index < displayedContacts.size - 1) {
+                        Divider(
+                            color = XiaomiColors.Divider,
+                            thickness = 0.5.dp,
+                            modifier = Modifier.padding(start = 80.dp)
+                        )
+                    }
                 }
             }
-        )
-
-        TextField(
-            value = phoneNumber,
-            onValueChange = {
-                phoneNumber = it
-                phoneError = null
-            },
-            label = { Text("Số điện thoại") },
-            modifier = Modifier.fillMaxWidth().padding(8.dp),
-            isError = phoneError != null,
-            supportingText = {
-                if (phoneError != null) {
-                    Text(
-                        text = phoneError!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-        )
-
-        Button(
-            onClick = {
-                nameError = validateName(name.text)
-                phoneError = validatePhoneNumber(phoneNumber.text)
-
-                if (nameError == null && phoneError == null) {
-                    val newContact = Contact(
-                        id = (sampleContacts.maxOfOrNull { it.id } ?: 0) + 1,
-                        name = name.text,
-                        phoneNumber = phoneNumber.text
-                    )
-                    sampleContacts.add(newContact)
-                    name = TextFieldValue("")
-                    phoneNumber = TextFieldValue("")
-                }
-            },
-            modifier = Modifier.padding(8.dp)
-        ) {
-            Text("Thêm liên hệ")
         }
     }
 
-    // Contact Detail & Edit Dialog
-    if (selectedContact != null) {
+    // Contact Detail Dialog
+    selectedContact?.let { contact ->
         AlertDialog(
-            onDismissRequest = {
-                selectedContact = null
-                editingContact = null
-                editNameError = null
-                editPhoneError = null
+            onDismissRequest = { selectedContact = null },
+            containerColor = XiaomiColors.Surface,
+            title = null,
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    ContactAvatar(
+                        name = contact.name,
+                        modifier = Modifier.size(80.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = contact.name,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = XiaomiColors.OnSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = contact.phoneNumber,
+                        fontSize = 18.sp,
+                        color = XiaomiColors.OnSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        ActionButton(
+                            icon = Icons.Default.Call,
+                            text = "Gọi",
+                            onClick = { handleCall(contact.phoneNumber) },
+                            color = XiaomiColors.Success
+                        )
+
+                        ActionButton(
+                            icon = Icons.Default.Phone,
+                            text = "Quay số",
+                            onClick = { openDialer(contact.phoneNumber) },
+                            color = XiaomiColors.Primary
+                        )
+
+                        ActionButton(
+                            icon = Icons.Default.Edit,
+                            text = "Sửa",
+                            onClick = {
+                                editName = TextFieldValue(contact.name)
+                                editPhoneNumber = TextFieldValue(contact.phoneNumber)
+                                editNameError = null
+                                editPhoneError = null
+                                showEditDialog = true
+                            },
+                            color = XiaomiColors.Warning
+                        )
+
+                        ActionButton(
+                            icon = Icons.Default.Delete,
+                            text = "Xóa",
+                            onClick = {
+                                sampleContacts.removeIf { it.id == contact.id }
+                                selectedContact = null
+                            },
+                            color = XiaomiColors.Error
+                        )
+                    }
+                }
             },
             confirmButton = {
-                if (editingContact != null) {
-                    TextButton(
-                        onClick = {
-                            editNameError = validateName(newName.text)
-                            editPhoneError = validatePhoneNumber(newPhoneNumber.text)
+                TextButton(
+                    onClick = { selectedContact = null },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = XiaomiColors.Primary
+                    )
+                ) {
+                    Text("Đóng")
+                }
+            }
+        )
+    }
 
-                            if (editNameError == null && editPhoneError == null) {
-                                val contactToUpdate = editingContact!!
-                                val updatedContact = contactToUpdate.copy(
-                                    name = newName.text,
-                                    phoneNumber = newPhoneNumber.text
-                                )
-                                val index = sampleContacts.indexOfFirst { it.id == updatedContact.id }
-                                if (index != -1) {
-                                    sampleContacts[index] = updatedContact
-                                }
-                                selectedContact = null
-                                editingContact = null
-                                editNameError = null
-                                editPhoneError = null
-                            }
-                        }
-                    ) {
-                        Text("Lưu")
-                    }
-                }
-                TextButton(onClick = {
-                    selectedContact = null
-                    editingContact = null
-                    editNameError = null
-                    editPhoneError = null
-                }) {
-                    Text(if (editingContact != null) "Hủy" else "Đóng")
-                }
+    // Add Contact Dialog
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showAddDialog = false
+                addName = TextFieldValue("")
+                addPhoneNumber = TextFieldValue("")
+                addNameError = null
+                addPhoneError = null
             },
+            containerColor = XiaomiColors.Surface,
             title = {
-                Text(if (editingContact != null) "Sửa Liên Hệ" else "Chi tiết Liên Hệ")
+                Text(
+                    "Thêm liên hệ mới",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = XiaomiColors.OnSurface
+                )
             },
             text = {
-                if (editingContact != null) {
-                    Column {
-                        TextField(
-                            value = newName,
-                            onValueChange = {
-                                newName = it
-                                editNameError = null
-                            },
-                            label = { Text("Tên liên hệ") },
-                            isError = editNameError != null,
-                            supportingText = {
-                                if (editNameError != null) {
-                                    Text(
-                                        text = editNameError!!,
-                                        color = MaterialTheme.colorScheme.error,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                Column {
+                    OutlinedTextField(
+                        value = addName,
+                        onValueChange = {
+                            addName = it
+                            addNameError = null
+                        },
+                        label = { Text("Tên liên hệ") },
+                        isError = addNameError != null,
+                        supportingText = {
+                            addNameError?.let {
+                                Text(
+                                    text = it,
+                                    color = XiaomiColors.Error,
+                                    fontSize = 12.sp
+                                )
                             }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = XiaomiColors.Primary,
+                            unfocusedBorderColor = XiaomiColors.Divider
                         )
-                        TextField(
-                            value = newPhoneNumber,
-                            onValueChange = {
-                                newPhoneNumber = it
-                                editPhoneError = null
-                            },
-                            label = { Text("Số điện thoại") },
-                            isError = editPhoneError != null,
-                            supportingText = {
-                                if (editPhoneError != null) {
-                                    Text(
-                                        text = editPhoneError!!,
-                                        color = MaterialTheme.colorScheme.error,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = addPhoneNumber,
+                        onValueChange = {
+                            addPhoneNumber = it
+                            addPhoneError = null
+                        },
+                        label = { Text("Số điện thoại") },
+                        isError = addPhoneError != null,
+                        supportingText = {
+                            addPhoneError?.let {
+                                Text(
+                                    text = it,
+                                    color = XiaomiColors.Error,
+                                    fontSize = 12.sp
+                                )
                             }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = XiaomiColors.Primary,
+                            unfocusedBorderColor = XiaomiColors.Divider
                         )
-                    }
-                } else {
-                    Column {
-                        Text("Tên: ${selectedContact?.name}")
-                        Text("Số điện thoại: ${selectedContact?.phoneNumber}")
-                    }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        addNameError = validateName(addName.text)
+                        addPhoneError = validatePhoneNumber(addPhoneNumber.text)
+
+                        if (addNameError == null && addPhoneError == null) {
+                            val newContact = Contact(
+                                id = (sampleContacts.maxOfOrNull { it.id } ?: 0) + 1,
+                                name = addName.text,
+                                phoneNumber = addPhoneNumber.text
+                            )
+                            sampleContacts.add(newContact)
+                            showAddDialog = false
+                            addName = TextFieldValue("")
+                            addPhoneNumber = TextFieldValue("")
+                            addNameError = null
+                            addPhoneError = null
+                        }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = XiaomiColors.Primary
+                    )
+                ) {
+                    Text("Thêm")
                 }
             },
             dismissButton = {
-                if (editingContact == null && selectedContact != null) {
-                    // Gọi trực tiếp (yêu cầu quyền)
-                    TextButton(
-                        onClick = {
-                            handleCall(selectedContact?.phoneNumber ?: "")
-                        }
-                    ) {
-                        Text("Gọi")
-                    }
+                TextButton(
+                    onClick = {
+                        showAddDialog = false
+                        addName = TextFieldValue("")
+                        addPhoneNumber = TextFieldValue("")
+                        addNameError = null
+                        addPhoneError = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = XiaomiColors.OnSurfaceVariant
+                    )
+                ) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
 
-                    // Mở ứng dụng gọi điện (không cần quyền)
-                    TextButton(
-                        onClick = {
-                            openDialer(selectedContact?.phoneNumber ?: "")
-                        }
-                    ) {
-                        Text("Quay số")
-                    }
+    // Edit Contact Dialog
+    if (showEditDialog && selectedContact != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditDialog = false
+                editNameError = null
+                editPhoneError = null
+            },
+            containerColor = XiaomiColors.Surface,
+            title = {
+                Text(
+                    "Sửa liên hệ",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = XiaomiColors.OnSurface
+                )
+            },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = editName,
+                        onValueChange = {
+                            editName = it
+                            editNameError = null
+                        },
+                        label = { Text("Tên liên hệ") },
+                        isError = editNameError != null,
+                        supportingText = {
+                            editNameError?.let {
+                                Text(
+                                    text = it,
+                                    color = XiaomiColors.Error,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = XiaomiColors.Primary,
+                            unfocusedBorderColor = XiaomiColors.Divider
+                        )
+                    )
 
-                    TextButton(
-                        onClick = {
-                            editingContact = selectedContact
-                            newName = TextFieldValue(selectedContact!!.name)
-                            newPhoneNumber = TextFieldValue(selectedContact!!.phoneNumber)
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = editPhoneNumber,
+                        onValueChange = {
+                            editPhoneNumber = it
+                            editPhoneError = null
+                        },
+                        label = { Text("Số điện thoại") },
+                        isError = editPhoneError != null,
+                        supportingText = {
+                            editPhoneError?.let {
+                                Text(
+                                    text = it,
+                                    color = XiaomiColors.Error,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = XiaomiColors.Primary,
+                            unfocusedBorderColor = XiaomiColors.Divider
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        editNameError = validateName(editName.text)
+                        editPhoneError = validatePhoneNumber(editPhoneNumber.text)
+
+                        if (editNameError == null && editPhoneError == null) {
+                            val updatedContact = selectedContact!!.copy(
+                                name = editName.text,
+                                phoneNumber = editPhoneNumber.text
+                            )
+                            val index = sampleContacts.indexOfFirst { it.id == updatedContact.id }
+                            if (index != -1) {
+                                sampleContacts[index] = updatedContact
+                            }
+                            selectedContact = updatedContact
+                            showEditDialog = false
                             editNameError = null
                             editPhoneError = null
                         }
-                    ) {
-                        Text("Sửa")
-                    }
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = XiaomiColors.Primary
+                    )
+                ) {
+                    Text("Lưu")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showEditDialog = false
+                        editNameError = null
+                        editPhoneError = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = XiaomiColors.OnSurfaceVariant
+                    )
+                ) {
+                    Text("Hủy")
                 }
             }
         )
     }
 }
 
-// Utility functions
+// Utility functions remain the same
 fun searchContacts(query: String, allContacts: List<Contact>): List<Contact> {
     if (query.isBlank()) {
         return allContacts
@@ -386,9 +688,6 @@ fun searchContacts(query: String, allContacts: List<Contact>): List<Contact> {
 fun validateName(name: String): String? {
     if (name.isBlank()) {
         return "Tên liên hệ không được để trống"
-    }
-    if (name.length < 2) {
-        return "Tên liên hệ phải có ít nhất 2 ký tự"
     }
     return null
 }
@@ -406,7 +705,6 @@ fun validatePhoneNumber(phone: String): String? {
     return null
 }
 
-// Function to make direct call (requires CALL_PHONE permission)
 fun makeDirectCall(context: Context, phoneNumber: String) {
     try {
         val intent = Intent(Intent.ACTION_CALL)
