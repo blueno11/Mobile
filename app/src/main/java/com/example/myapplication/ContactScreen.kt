@@ -1,14 +1,20 @@
 package com.example.myapplication
 
+// ===== IMPORTS - CÁC THƯ VIỆN CẦN THIẾT =====
+// Android core imports - Các thư viện cơ bản của Android
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.widget.Toast
+
+// Compose Activity imports - Thư viện để tích hợp Compose với Activity
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+
+// Compose UI imports - Thư viện giao diện người dùng
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -34,19 +40,30 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import java.io.Serializable
 
-// Xiaomi color scheme
+// ===== XIAOMI COLOR SCHEME - BỘ MÀU SẮC THEO PHONG CÁCH XIAOMI =====
+/**
+ * Object chứa các màu sắc được thiết kế theo phong cách Xiaomi
+ * Sử dụng object để có thể truy cập từ bất kỳ đâu trong ứng dụng
+ */
 object XiaomiColors {
-    val Primary = Color(0xFF007AFF)
-    val Background = Color(0xFFF5F5F5)
-    val Surface = Color.White
-    val OnSurface = Color(0xFF1C1C1E)
-    val OnSurfaceVariant = Color(0xFF8E8E93)
-    val Divider = Color(0xFFE5E5EA)
-    val Success = Color(0xFF34C759)
-    val Warning = Color(0xFFFF9500)
-    val Error = Color(0xFFFF3B30)
+    val Primary = Color(0xFF007AFF)        // Màu xanh chính (giống iOS)
+    val Background = Color(0xFFF5F5F5)     // Màu nền chính
+    val Surface = Color.White              // Màu nền của các card/container
+    val OnSurface = Color(0xFF1C1C1E)     // Màu chữ trên nền Surface
+    val OnSurfaceVariant = Color(0xFF8E8E93) // Màu chữ phụ
+    val Divider = Color(0xFFE5E5EA)       // Màu đường phân cách
+    val Success = Color(0xFF34C759)       // Màu xanh lá (thành công)
+    val Warning = Color(0xFFFF9500)       // Màu cam (cảnh báo)
+    val Error = Color(0xFFFF3B30)         // Màu đỏ (lỗi)
 }
 
+// ===== XIAOMI TOP BAR - THANH ĐIỀU HƯỚNG TRÊN CÙNG =====
+/**
+ * Composable function tạo thanh điều hướng phía trên màn hình
+ * @param title: Tiêu đề hiển thị trên thanh
+ * @param onSearchClick: Hàm được gọi khi nhấn nút tìm kiếm
+ * @param onAddClick: Hàm được gọi khi nhấn nút thêm
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun XiaomiTopBar(
@@ -85,8 +102,19 @@ fun XiaomiTopBar(
     )
 }
 
+// ===== DATA CLASSES VÀ DỮ LIỆU MẪU =====
+/**
+ * Data class định nghĩa cấu trúc dữ liệu cho một liên hệ
+ * @param id: ID duy nhất của liên hệ
+ * @param name: Tên liên hệ
+ * @param phoneNumber: Số điện thoại
+ */
 data class Contact(val id: Int, val name: String, val phoneNumber: String)
 
+/**
+ * Danh sách liên hệ mẫu để test ứng dụng
+ * Sử dụng mutableStateListOf để có thể thay đổi và tự động cập nhật UI
+ */
 val sampleContacts = mutableStateListOf(
     Contact(1, "Nguyen Van A", "0123456789"),
     Contact(2, "Le Thi B", "0987654321"),
@@ -95,6 +123,12 @@ val sampleContacts = mutableStateListOf(
     Contact(5, "Hoang Van E", "0789123456")
 )
 
+// ===== CONTACT AVATAR - AVATAR HIỂN THỊ CHỮ CÁI ĐẦU =====
+/**
+ * Composable tạo avatar tròn hiển thị chữ cái đầu của tên liên hệ
+ * @param name: Tên liên hệ để lấy chữ cái đầu
+ * @param modifier: Modifier để tùy chỉnh kích thước và vị trí
+ */
 @Composable
 fun ContactAvatar(name: String, modifier: Modifier = Modifier) {
     Box(
@@ -235,7 +269,10 @@ fun XiaomiSearchBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ContactListScreen(activity: ComponentActivity) {
+fun ContactListScreen(
+    activity: ComponentActivity,
+    navController: androidx.navigation.NavController? = null
+) {
     val context = LocalContext.current
 
     // State variables
@@ -316,7 +353,15 @@ fun ContactListScreen(activity: ComponentActivity) {
         Column(modifier = Modifier.fillMaxSize()) {
             XiaomiTopBar(
                 onSearchClick = { /* Focus search */ },
-                onAddClick = { showAddDialog = true }
+                onAddClick = { 
+                    // Nếu có navigation, chuyển đến màn hình thêm liên hệ
+                    if (navController != null) {
+                        navController.navigate(Screen.AddContact.route)
+                    } else {
+                        // Nếu không có navigation, hiển thị dialog như cũ
+                        showAddDialog = true
+                    }
+                }
             )
 
             XiaomiSearchBar(
@@ -333,7 +378,15 @@ fun ContactListScreen(activity: ComponentActivity) {
                 items(displayedContacts.size) { index ->
                     ContactItem(
                         contact = displayedContacts[index],
-                        onClick = { selectedContact = displayedContacts[index] }
+                        onClick = { 
+                            // Nếu có navigation, chuyển đến màn hình chi tiết
+                            if (navController != null) {
+                                navController.navigate(Screen.ContactDetail.createRoute(displayedContacts[index].id))
+                            } else {
+                                // Nếu không có navigation, hiển thị dialog như cũ
+                                selectedContact = displayedContacts[index]
+                            }
+                        }
                     )
 
                     if (index < displayedContacts.size - 1) {
